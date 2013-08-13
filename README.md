@@ -3,26 +3,24 @@ AgentonFarms
 
 Action Language (AL) program on answer set programming with python interface.
 
-# -----------------------------------------------------------------------------------------------------#
-#                           ------------------------------------------------                           #
-#                         / AGENT ON FARMLANDS : AN ACTION LANGUAGE MODULE /                           # 
-#                         ------------------------------------------------                             #
-#                                                                                                      #
-#  ACTION LANGUAGE : AL (Translated in ASP)                                      INTERFACE : PYTHON    #
-#  ----------------------------------------                                      ------------------    #
-#                                                                                                      #
-#  Agent controlled farmlands is considered as a domain here. Agent is responsible to maintain water-  #
-#  level in farmlands. Water is assumed to be absorbed by the crops in two timesteps. So the agent     #
-#  should supply water after every two steps (Persistance Action).Symptoms of the nutrients deficiency #
-#  can also be percieved. According to the deficiency, weakness should be identified and corresponding #
-#  manure should be applied. Suppose deficiency is identified and plants are not watere,then actions   #
-#  for water supply & manure application occur parallel and cause the effects of both actions(Parallel #
-#  actions).                                                                                           #
-#                                                                                                      #
-#  If manure is applied at a timestep, then neither water supply or opening resorvoir should not be    #
-#  executed in the next time step(Heuristics). Breakage of reservoir door can happen exogenously and   #
-#  impact the events of the domain(Exogenous action).                                                  #
-# -----------------------------------------------------------------------------------------------------#
+
+                          AGENT ON FARMLANDS : AN ACTION LANGUAGE MODULE 
+                          ==============================================
+                                                                                                      
+   ACTION LANGUAGE : AL (Translated in ASP)                                      INTERFACE : PYTHON    
+
+  Agent controlled farmlands is considered as a domain here. Agent is responsible to maintain water-  
+  level in farmlands. Water is assumed to be absorbed by the crops in two timesteps. So the agent     
+  should supply water after every two steps (Persistance Action).Symptoms of the nutrients deficiency 
+  can also be percieved. According to the deficiency, weakness should be identified and corresponding 
+  manure should be applied. Suppose deficiency is identified and plants are not watere,then actions   
+  for water supply & manure application occur parallel and cause the effects of both actions(Parallel 
+  actions).                                                                                           
+                                                                                                      
+  If manure is applied at a timestep, then neither water supply or opening resorvoir should not be    
+  executed in the next time step(Heuristics). Breakage of reservoir door can happen exogenously and   
+  impact the events of the domain(Exogenous action).                                                  
+
 
 •	The python program (Agent_on_Farms.py) uses four files as its input.
   o	Farm.sm – Domain Description file.
