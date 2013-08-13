@@ -1,0 +1,4 @@
+step(0..7).
+-holds(res_opened(3),0).
+holds(water_levelled(3),0).
+holds(symptom(3,2),0).

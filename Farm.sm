@@ -1,0 +1,175 @@
+% ---------------------------------------------------------------------------------------------------- %
+% Author   : Navaneetha Krishnan Thiagarajan                                                           %
+% R Number : R10493147                                                                                 %
+% Course   : CS 5331 / Planning and Diagnosis on Dynamic Domains                                       %
+% ---------------------------------------------------------------------------------------------------- %
+%                                                                                                      %
+%                           ---------------------------------------------                              %
+%                         / AGENT ON FARMLANDS : ACTION LANGUAGE MODULE /                              %
+%                         ---------------------------------------------                                %
+%                                                                                                      %
+%  ACTION LANGUAGE : AL (Translated in ASP)                                      INTERFACE : PYTHON    %
+%  ----------------------------------------                                      ------------------    %
+%                                                                                                      %
+%  Problem Description                                                     File: DOMAIN DESCRIPTION    %
+%  ------- -----------                                                                                 %
+%  Agent controlled farmlands is considered as a domain here. Agent is responsible to maintain water-  %
+%  level in farmlands. Water is assumed to be absorbed by the crops in two timesteps. So the agent     %
+%  should supply water after every two steps (Persistance Action).Symptoms of the nutrients deficiency %
+%  can also be percieved. According to the deficiency, weakness should be identified and corresponding %
+%  manure should be applied. Suppose deficiency is identified and plants are not watered,then actions  %
+%  for water supply & manure application occur parallel and cause the effects of both actions(Parallel %
+%  actions).                                                                                           %
+%                                                                                                      %
+%  If manure is applied at a timestep, then neither water supply or opening resorvoir should not be    %
+%  executed in the next time step(Heuristics). Breakage of reservoir door can happen exogenously and   %
+%  impact the events of the domain(Exogenous action).                                                  %
+%                                                                                                      %
+% ---------------------------------------------------------------------------------------------------- %
+%                                                                                                      %
+% FLUENTS :                                                                                            %
+% ---------                                                                                            %
+% res_opened()      - Reservoir is in open state.                                                      %
+% res_broke()       - Reservoir is broken.                                                             %
+% water_levelled()  - Water is levelled in the farm for crops absorption.                              %
+% symptom(,)        - Symptom of a deficiency on the crops.                                            %
+% deficiency(,)     - A deficiency perceived from symptom.                                             %
+% applied(,)        - Manure is applied for the deficiency on corresponding farm.                      %
+%                                                                                                      %
+% ---------------------------------------------------------------------------------------------------- %
+%                                                                                                      %
+% ACTIONS :                                                                                            %
+% ---------                                                                                            %
+% res_open()        - Action to open reservoir.                                                        %
+% res_close()       - Action to close reservoir.                                                       %
+% supply_water()    - Action to supply water to the farm.                                              %
+% apply()    	    - Action to apply manures in the farm.                                             %
+% identify_deficiency()    	    			                                               %
+%        	    - Action responsible to identify deficiency in the crops from symptoms.            %
+%                                                                                                      %
+% ---------------------------------------------------------------------------------------------------- %
+
+#hide.
+#show occurs(A,T).
+#show holds(F,T).
+#show -holds(F,T).
+
+num(1..3).
+
+% --------------------------- %
+%          Fluents            %
+% --------------------------- %
+
+  fluent(res_opened(1..3)).
+  fluent(res_broke(1..3)). 	
+  fluent(water_levelled(1..3)).
+  fluent(symptom(1..3,1..6)).
+  fluent(deficiency(1..3,1..6)).
+  fluent(applied(1..3,1..6)).
+
+% --------------------------- %
+%          Actions            %
+% --------------------------- %
+
+  action(res_open(1..3)).
+  action(res_close(1..3)). 	
+  action(supply_water(1..3)).
+  action(apply(1..3,1..6)).
+  action(identify_deficiency).
+
+
+% --------------------------- %
+%     Dynamic Causal Laws     %
+% --------------------------- %
+
+% Actions open & close cause change in reservoir door to save or disperse water
+  holds(res_opened(FARM),T+1):-occurs(res_open(FARM),T),-holds(res_opened(FARM),T),step(T).
+ -holds(res_opened(FARM),T+1):-occurs(res_close(FARM),T),holds(res_opened(FARM),T),step(T).
+
+% Action supply water causes water level maintained in the fields.
+  holds(water_levelled(FARM),T+1):-occurs(supply_water(FARM),T),-holds(res_opened(FARM),T),-holds(water_levelled(FARM),T),step(T).
+
+% Action identify_deficiency helps to find the deficiency according to the symptoms.
+  holds(deficiency(FARM,Y),T+1):-occurs(identify_deficiency,T),holds(symptom(FARM,X),T),Y=X,step(T).
+
+% Action apply causes the manure to be applied on the field.
+  holds(applied(FARM,Z),T+1):-occurs(apply(FARM,A),T),-holds(res_opened(FARM),T),holds(water_levelled(FARM),T),holds(deficiency(FARM,Y),T),Z=Y,Z=A,step(T).
+
+% --------------------------- %
+%      Parallel Actions       %
+% --------------------------- %
+
+% Actions supply_water & apply manure can be performed parallely. Both together causes applied as direct effect & water_levelled as indirect effect.
+  holds(applied(FARM,Z),T+1):-occurs(supply_water(FARM),T),occurs(apply(FARM,A),T),-holds(res_opened(FARM),T),-holds(water_levelled(FARM),T),holds(deficiency(FARM,Y),T),Z=Y,Z=A,step(T).
+
+% --------------------------- %
+%      State constraints      %
+% --------------------------- %
+
+% Water is not levelled in the fields if reservoir is in open state.
+ -holds(water_levelled(FARM),T):-holds(res_opened(FARM),T),step(T).	
+
+% Deficiency is false if corresponding manure is applied.
+ -holds(deficiency(FARM,Y),T):-holds(applied(FARM,Z),T),Y=Z,step(T).
+
+% Manure Applied is false if its respective symptom is true.
+ -holds(applied(FARM,Z),T):-holds(symptom(FARM,X),T),Z=X,step(T).
+
+% Symptom is false in that state if corresponding manure is applied.
+ -holds(symptom(FARM,X),T):-holds(applied(FARM,Z),T),X=Z,step(T).
+
+% --------------------------- %
+%      Axioms of Inertia      %
+% --------------------------- %
+  holds(F,T+1):-holds(F,T),not -holds(F,T+1),step(T).
+ -holds(F,T+1):--holds(F,T),not holds(F,T+1),step(T).
+
+% --------------------------- %
+% Executability Preconditions %
+% --------------------------- %
+
+% Water should not be supplied if manure is applied in that state.
+:-occurs(supply_water(FARM),T),holds(applied(FARM,Z),T),step(T).
+
+% Water should not be supplied if water level is already maintained.
+:-occurs(supply_water(FARM),T),holds(water_levelled(FARM),T),step(T).
+
+% --------------------------- %
+%    Axioms for Observation   %
+% --------------------------- %
+:-fluent(F),step(T),holds(F,T),-obs(F,T).
+:-fluent(F),step(T),-holds(F,T),obs(F,T).
+
+
+% --------------------------- %
+%      Exogenous Actions      %
+% --------------------------- %
+  ex_action(res_breakage(1..3)).
+
+% Exogenous action (reservoir breakage) causes reservoir to be broken. 
+  holds(res_broke(FARM),T+1):-occurs(res_breakage(FARM),T),step(T).
+
+% Reservoir is opened if reservoir is broke.
+  holds(res_opened(FARM),T):-holds(res_broke(FARM),T),step(T).   	
+ -holds(res_opened(FARM1),T):-holds(res_broke(FARM2),T),FARM1!=FARM2,num(FARM1),num(FARM2),step(T).   	
+
+% Water & manure should not be supplied if reservoir is broken.
+:-occurs(supply_water(FARM),T),holds(res_broke(FARM),T),step(T).
+:-occurs(apply(A),T),holds(res_broke(FARM),T),step(T).
+
+
+% --------------------------- %
+%         Heuristics          %
+% --------------------------- %
+
+% Water should not be applied in next time step of applied(X). Assumption that the crops require two time steps to absorb manure.
+:-occurs(supply_water(FARM),T),holds(applied(FARM,Z),T-1),step(T),T>0.
+
+% Reservoir should not be opened next step to manure applied. The manure might not be absorbed properly by the crops as per assumption.
+:-occurs(res_open(FARM),T),holds(applied(FARM,Z),T-1),step(T),T>0.
+
+% Reservoir should not be opened when manure is being applied. Below constraint helps to avert apply & res_open actions occur parallely.
+:-occurs(res_open(FARM),T),holds(applied(FARM,Z),T+1),step(T).
+
+% Water absorbed after 2 time steps.
+-holds(water_levelled(FARM),T):-holds(water_levelled(FARM),T-1),holds(water_levelled(FARM),T-2),step(T),T>1.

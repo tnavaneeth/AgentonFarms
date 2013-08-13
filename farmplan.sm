@@ -1,0 +1,18 @@
+% ---------------------------------------------------------------------------------------------------- %
+%                           ---------------------------------------------                              %
+%                         / AGENT ON FARMLANDS : ACTION LANGUAGE MODULE /                              %
+%                         ---------------------------------------------                                %
+%                                                                                                      %
+%  ACTION LANGUAGE : AL (Translated in ASP)                                      INTERFACE : PYTHON    %
+%  ----------------------------------------                                      ------------------    %
+%                                                                                                      %
+%  File: PLANNER MODULE                                                                                %
+%                                                                                                      %
+% ---------------------------------------------------------------------------------------------------- %
+
+% Goals statement
+  goal:-goal(T),step(T).
+:-not goal.
+
+% Planner can do 1 or 2 actions at a time step.
+1{occurs(A,T):action(A)}2:-not goal(T),step(T).
